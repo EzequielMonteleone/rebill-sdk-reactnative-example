@@ -6,105 +6,38 @@
  * @flow strict-local
  */
 
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, ActivityIndicator, Text, Button} from 'react-native';
-import {SafeAreaView} from 'react-native';
-import {CreditCardInput, RebillSdk} from '@rebill/sdk-reactnative';
+import React from 'react';
+import {StyleSheet, SafeAreaView} from 'react-native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {NavigationContainer} from '@react-navigation/native';
+import WithInput from './src/screens/WithInput';
+import WithoutInput from './src/screens/WithoutInput';
+import Main from './src/screens/Main';
 
-const organizationId = '371c1f28-9a66-4d85-9bc5-b6e8dd433e94';
-const customer = {
-  firstName: 'Jose',
-  lastName: 'Sanchez',
-  email: 'jose@jose.com',
-  personalId: {
-    type: 'DNI',
-    value: '38617261',
-  },
-  phone: {
-    countryCode: '54',
-    areaCode: '11',
-    phoneNumber: '26423002',
-  },
-  address: {
-    country: 'AR',
-    street: 'Arenales',
-    number: '554',
-    zipCode: '1638',
-    city: 'Vicente Lopez',
-    state: 'Buenos Aires',
-  },
-};
-const cardHolder = {
-  identification: {
-    type: 'DNI',
-    value: '35094310',
-  },
-  name: 'EZEQUIEL',
-};
-const transaction = {
-  prices: [
-    {
-      id: '7fdc6cc5-7b4c-4e6c-9ff2-624edc8ae485',
-      quantity: 2,
-    },
-  ],
-};
-const defaultValues = {
-  number: '4509953566233704',
-  expiry: '11/25',
-  cvc: '123',
-};
+const Stack = createNativeStackNavigator();
 
 const App = () => {
-  const [checkoutInProcess, setCheckoutInProcess] = useState(false);
-  const [result, setResult] = useState();
-  const [error, setError] = useState();
-  const [price, setPrice] = useState(0);
-  const checkout = new RebillSdk(organizationId);
-  checkout.setCustomer(customer);
-  checkout.setCardHolder(cardHolder);
-  checkout.setTransaction(transaction);
-  checkout.setElements('@rebill/sdk-reactnative');
-  checkout.setCallbacks({
-    onSuccessPrices: p => setPrice(p),
-    onSuccess: r => setResult(r),
-    onError: e => setError(e),
-  });
-  checkout.setAlias('santitest2');
-  useEffect(() => {
-    checkout.getPrices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (checkoutInProcess) {
-      setResult();
-      setError();
-    }
-  }, [checkoutInProcess]);
-
-  const handleOnPressCheckout = async () => {
-    setCheckoutInProcess(true);
-    await checkout.checkout();
-    setCheckoutInProcess(false);
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Button title="Ejecutar checkout" onPress={handleOnPressCheckout} />
-      <CreditCardInput
-        defaultValues={defaultValues}
-        rebillSdk={checkout}
-        onCheckoutInProcess={setCheckoutInProcess}
-        validColor="black"
-        invalidColor="red"
-        placeholderColor="darkgray"
-        onPay={card => console.log(card)}
-      />
-
-      {checkoutInProcess ? <ActivityIndicator /> : <Text>{`${price}`}</Text>}
-      {result && <Text>{`Result: ${JSON.stringify(result)}`}</Text>}
-      {error && <Text>{`Error: ${JSON.stringify(error)}`}</Text>}
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Main"
+            component={Main}
+            options={{title: 'Main'}}
+          />
+          <Stack.Screen
+            name="WithInput"
+            component={WithInput}
+            options={{title: 'With input'}}
+          />
+          <Stack.Screen
+            name="WithoutInput"
+            component={WithoutInput}
+            options={{title: 'Without input'}}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
     </SafeAreaView>
   );
 };
@@ -112,5 +45,5 @@ const App = () => {
 export default App;
 
 const styles = StyleSheet.create({
-  safeArea: {marginHorizontal: 12, marginVertical: 16},
+  safeArea: {marginHorizontal: 12, marginVertical: 16, flex: 1},
 });
